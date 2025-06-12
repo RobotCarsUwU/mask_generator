@@ -10,10 +10,11 @@ from UNet import UNetDetector
 import os
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+import cv2
 
 def main():
     img_dir = "./car_pictures/320_180/"
-    model_path = "./unet_simple.h5"
+    model_path = "./unet_simple.weights.h5"
 
     gpus = tf.config.experimental.list_physical_devices("GPU")
     print(f"Gpus are: {gpus}")
