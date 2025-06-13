@@ -7,7 +7,7 @@
 
 import numpy as np
 from keras import Input, layers, models
-from data import data_generator
+from data import data_generator, resize_image
 import cv2
 
 def unet_model(input_size=(180, 320, 3)):
@@ -70,7 +70,7 @@ class UNetDetector:
         if image.dtype != np.uint8:
             image = (image * 255).astype(np.uint8)
 
-        img = cv2.resize(image, (self.input_size[1], self.input_size[0]))
+        img = resize_image(image, (self.input_size[0], self.input_size[1]))
         img = np.expand_dims(img / 255.0, axis=0)
 
         pred = self.model.predict(img, verbose=0)[0, :, :, 0]

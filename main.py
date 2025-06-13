@@ -10,7 +10,8 @@ from UNet import UNetDetector
 import os
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
-import cv2
+
+from data import resize_image
 
 def main():
     img_dir = "./car_pictures/320_180/"
@@ -66,7 +67,7 @@ def main():
         plt.subplot(1, 3, 3)
         plt.imshow(img)
         plt.imshow(
-            cv2.resize(result, (img.shape[1], img.shape[0])), alpha=0.4, cmap="hot"
+            resize_image(result, (img.shape[0], img.shape[1])), alpha=0.4, cmap="hot"
         )
         plt.title("Overlay")
         plt.axis("off")

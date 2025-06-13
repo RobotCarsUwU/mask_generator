@@ -8,7 +8,6 @@
 from PIL import Image, ImageDraw
 import matplotlib.image as mpimg
 import numpy as np
-import cv2
 
 def create_line_mask(image):
     height, width = image.shape[:2]
@@ -28,6 +27,11 @@ def create_line_mask(image):
     
     return line_mask
 
+def resize_image(image, new_shape):
+    img_pil = Image.fromarray(image)
+    img_resized = img_pil.resize((new_shape[1], new_shape[0]), Image.BILINEAR)
+    return np.array(img_resized)
+
 def data_generator(image_paths, input_size=(180,320), batch_size=32):
     batch_X, batch_y = [], []
     for path in image_paths:
@@ -37,7 +41,7 @@ def data_generator(image_paths, input_size=(180,320), batch_size=32):
         if img.dtype != np.uint8:
             img = (img * 255).astype(np.uint8)
 
-        img = cv2.resize(img, (input_size[1], input_size[0]))
+        img = resize_image(img, (input_size[0], input_size[1]))
         mask = create_line_mask(img)
 
         batch_X.append(img / 255.0)
