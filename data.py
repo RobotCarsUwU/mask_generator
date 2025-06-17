@@ -53,3 +53,30 @@ def data_generator(image_paths, input_size=(180,320), batch_size=32):
 
     if batch_X:
         yield np.array(batch_X), np.array(batch_y)
+
+def paired_data_generator(input_paths, mask_paths, input_size=(180,320), batch_size=4):
+    assert len(input_paths) == len(mask_paths), "Input et mask lists doivent être de même longueur"
+    idxs = np.arange(len(input_paths))
+    while True:
+        np.random.shuffle(idxs)
+        for start in range(0, len(idxs), batch_size):
+            batch_idxs = idxs[start:start+batch_size]
+            batch_X, batch_y = [], []
+            for i in batch_idxs:
+                img = mpimg.imread(input_paths[i])
+                if img.dtype != np.uint8:
+                    img = (img * 255).astype(np.uint8)
+                img = resize_image(img, input_size).astype(np.float32)
+                batch_X.append(img / 255.0)
+
+                m = mpimg.imread(mask_paths[i])
+                if m.ndim == 3:
+                    m = m[..., 0]
+                if m.dtype != np.uint8:
+                    m = (m * 255).astype(np.uint8)
+                m = resize_image(m, input_size)
+                m = (m > 127).astype(np.float32)
+                batch_y.append(np.expand_dims(m, axis=-1))
+
+            yield np.array(batch_X), np.array(batch_y)
+

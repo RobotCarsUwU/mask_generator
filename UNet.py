@@ -7,7 +7,9 @@
 
 import numpy as np
 from keras import Input, layers, models
-from data import data_generator, resize_image
+import keras
+import tensorflow as tf
+from data import paired_data_generator, resize_image
 import cv2
 
 def unet_model(input_size=(180, 320, 3)):
@@ -46,15 +48,21 @@ class UNetDetector:
     def __init__(self, input_size=(180, 320, 3)):
         self.input_size = input_size
         self.model = unet_model(input_size)
+        def dice_coef(y_true, y_pred, smooth=1):
+            y_true_f = tf.reshape(tf.cast(y_true, tf.float32), [-1])
+            y_pred_f = tf.reshape(tf.cast(y_pred, tf.float32), [-1])
+            intersection = tf.reduce_sum(y_true_f * y_pred_f)
+            return (2. * intersection + smooth) / (
+                tf.reduce_sum(y_true_f) + tf.reduce_sum(y_pred_f) + smooth
+            )
+
         self.model.compile(
-            optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"]
+            optimizer="adam", loss="binary_crossentropy", metrics=["accuracy", dice_coef]
         )
 
-    def train(self, image_paths, epochs=20, batch_size=4):
-        print("Training with generator")
-
-        steps_per_epoch = int(np.ceil(len(image_paths) / batch_size))
-        generator = data_generator(image_paths, self.input_size[:2], batch_size)
+    def train(self, input_paths, mask_paths, epochs=20, batch_size=4):
+        steps_per_epoch = int(np.ceil(len(input_paths) / batch_size))
+        generator = paired_data_generator(input_paths, mask_paths, self.input_size[:2], batch_size)
 
         self.model.fit(
             generator,

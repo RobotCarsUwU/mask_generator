@@ -14,7 +14,9 @@ import matplotlib.image as mpimg
 from data import resize_image
 
 def main():
-    img_dir = "./car_pictures/320_180/"
+    vanilla_dir = "training_set/vanilla"
+    masked_dir  = "training_set/masked"
+
     model_path = "./unet_simple.weights.h5"
 
     gpus = tf.config.experimental.list_physical_devices("GPU")
@@ -22,20 +24,17 @@ def main():
 
     if gpus:
         tf.config.experimental.set_memory_growth(gpus[0], True)
-    if not os.path.exists(img_dir):
-        os.makedirs(img_dir, exist_ok=True)
-        print(f"Directory added but no image yet")
-        exit()
 
-    img_files = [
-        os.path.join(img_dir, f)
-        for f in os.listdir(img_dir)
-        if f.lower().endswith((".png", ".jpg", ".jpeg"))
-    ]
-
-    if not img_files:
-        print("No image")
-        exit()
+    vanilla_files = sorted([
+        os.path.join(vanilla_dir, f)
+        for f in os.listdir(vanilla_dir)
+        if f.lower().endswith((".png",".jpg",".jpeg"))
+    ])
+    masked_files = sorted([
+        os.path.join(masked_dir, f)
+        for f in os.listdir(masked_dir)
+        if f.lower().endswith((".png",".jpg",".jpeg"))
+    ])
 
     detector = UNetDetector()
 
@@ -44,12 +43,12 @@ def main():
         print("Model loaded")
     else:
         print("training in progress...")
-        detector.train(img_files, epochs=15, batch_size=2)
+        detector.train(vanilla_files, masked_files, epochs=15, batch_size=2)
         print("Zebi c'est la vie")
         detector.save(model_path)
         print("model saved")
 
-    for i, path in enumerate(img_files[:3]):
+    for i, path in enumerate(vanilla_files[:3]):
         img = mpimg.imread(path)
         result = detector.predict(img)
 
