@@ -9,10 +9,10 @@ import numpy as np
 from keras import Input, layers, models
 import keras
 import tensorflow as tf
-from data import paired_data_generator, resize_image
+from data import paired_data_generator, resize_image, img_height, img_width
 import cv2
 
-def unet_model(input_size=(180, 320, 3)):
+def unet_model(input_size=(img_width, img_height, 3)):
     inputs = Input(input_size)
 
     conv1 = layers.Conv2D(64, 3, activation="relu", padding="same")(inputs)
@@ -45,7 +45,7 @@ def unet_model(input_size=(180, 320, 3)):
 
 
 class UNetDetector:
-    def __init__(self, input_size=(180, 320, 3)):
+    def __init__(self, input_size=(img_height, img_width, 3)):
         self.input_size = input_size
         self.model = unet_model(input_size)
         def dice_coef(y_true, y_pred, smooth=1):
@@ -55,12 +55,23 @@ class UNetDetector:
             return (2. * intersection + smooth) / (
                 tf.reduce_sum(y_true_f) + tf.reduce_sum(y_pred_f) + smooth
             )
+        def dice_loss(y_true, y_pred):
+            smooth = 1
+            y_true_f = tf.reshape(tf.cast(y_true, tf.float32), [-1])
+            y_pred_f = tf.reshape(tf.cast(y_pred, tf.float32), [-1])
+            intersection = tf.reduce_sum(y_true_f * y_pred_f)
+            return 1 - (2. * intersection + smooth) / (
+                tf.reduce_sum(y_true_f) + tf.reduce_sum(y_pred_f) + smooth
+            )
+
+        def bce_dice_loss(y_true, y_pred):
+            return keras.losses.binary_crossentropy(y_true, y_pred) + dice_loss(y_true, y_pred)
 
         self.model.compile(
-            optimizer="adam", loss="binary_crossentropy", metrics=["accuracy", dice_coef]
+            optimizer="adam", loss=bce_dice_loss, metrics=["accuracy", dice_coef]
         )
 
-    def train(self, input_paths, mask_paths, epochs=20, batch_size=4):
+    def train(self, input_paths, mask_paths, epochs=20, batch_size=16):
         steps_per_epoch = int(np.ceil(len(input_paths) / batch_size))
         generator = paired_data_generator(input_paths, mask_paths, self.input_size[:2], batch_size)
 

@@ -5,17 +5,21 @@
 ## Main
 ##
 
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
 import tensorflow as tf
 from UNet import UNetDetector
 import os
-import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
 from data import resize_image
 
+
 def main():
-    vanilla_dir = "training_set/vanilla"
-    masked_dir  = "training_set/masked"
+    vanilla_dir = "merged/vanilla"
+    masked_dir  = "merged/masked"
 
     model_path = "./unet_simple.weights.h5"
 
@@ -43,7 +47,7 @@ def main():
         print("Model loaded")
     else:
         print("training in progress...")
-        detector.train(vanilla_files, masked_files, epochs=15, batch_size=2)
+        detector.train(vanilla_files, masked_files, epochs=30, batch_size=8)
         print("Zebi c'est la vie")
         detector.save(model_path)
         print("model saved")
