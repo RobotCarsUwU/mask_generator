@@ -9,8 +9,8 @@ from PIL import Image, ImageDraw
 import matplotlib.image as mpimg
 import numpy as np
 
-img_width = 820
-img_height = 296
+img_width = 640
+img_height = 180
 
 def create_line_mask(image):
     height, width = image.shape[:2]
