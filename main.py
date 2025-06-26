@@ -20,6 +20,7 @@ from data import resize_image
 def main():
     vanilla_dir = "training_set/vanilla"
     masked_dir  = "training_set/masked"
+    test_dir = "tests_data"
 
     model_path = "./unet_simple.weights.h5"
 
@@ -39,6 +40,11 @@ def main():
         for f in os.listdir(masked_dir)
         if f.lower().endswith((".png",".jpg",".jpeg"))
     ])
+    test_data = sorted([
+        os.path.join(test_dir, f)
+        for f in os.listdir(test_dir)
+        if f.lower().endswith((".png",".jpg",".jpeg"))
+    ])
 
     detector = UNetDetector()
 
@@ -52,9 +58,12 @@ def main():
         detector.save(model_path)
         print("model saved")
 
-    for i, path in enumerate(vanilla_files[:3]):
+    for i, path in enumerate(test_data):
         img = mpimg.imread(path)
+        print("Begin prediction...")
         result = detector.predict(img)
+        mpimg.imsave(path + ".out.png", result)
+        print("Prediction done")
 
         plt.figure(figsize=(12, 4))
         plt.subplot(1, 3, 1)
@@ -81,3 +90,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
