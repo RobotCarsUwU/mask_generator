@@ -26,27 +26,26 @@ def conv_block(x, filters, dropout_rate=0.0):
 def unet_model(input_size=(img_width, img_height, 3)):
     inputs = Input(input_size)
 
-    conv1 = conv_block(inputs, 64)
+    conv1 = conv_block(inputs, 16)
     pool1 = layers.MaxPooling2D(pool_size=(2, 2))(conv1)
 
-    conv2 = conv_block(pool1, 128)
+    conv2 = conv_block(pool1, 32)
     pool2 = layers.MaxPooling2D(pool_size=(2, 2))(conv2)
 
-    conv3 = conv_block(pool2, 256, dropout_rate=0.3)  # goulot
+    conv3 = conv_block(pool2, 64, dropout_rate=0.3)
 
-    up4 = layers.Conv2DTranspose(128, 2, strides=(2, 2), padding='same')(conv3)
+    up4 = layers.Conv2DTranspose(32, 2, strides=(2, 2), padding='same')(conv3)
     merge4 = layers.concatenate([conv2, up4], axis=3)
-    conv4 = conv_block(merge4, 128)
+    conv4 = conv_block(merge4, 32)
 
-    up5 = layers.Conv2DTranspose(64, 2, strides=(2, 2), padding='same')(conv4)
+    up5 = layers.Conv2DTranspose(16, 2, strides=(2, 2), padding='same')(conv4)
     merge5 = layers.concatenate([conv1, up5], axis=3)
-    conv5 = conv_block(merge5, 64)
+    conv5 = conv_block(merge5, 16)
 
     outputs = layers.Conv2D(1, 1, activation="sigmoid")(conv5)
 
     model = models.Model(inputs=inputs, outputs=outputs)
     return model
-
 
 class UNetDetector:
     def __init__(self, input_size=(img_height, img_width, 3)):
